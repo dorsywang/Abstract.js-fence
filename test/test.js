@@ -1,92 +1,46 @@
-Model.service("alert1", function(scope){
+Model.import("index.find", "index.tab");
+
+//声明命名空间
+Model.nameSpace("index");
+
+Model.task("dothing1", function(scope){
     var msg = scope.msg;
 
+    alert(msg);
+    //var {name, pig}
+    //var {name, pig, right} = scope;
+});
+
+Model.task("dothing2", function(scope){
     return {
-        msg: "ok"
+        msg: 'yeah!'
     };
 });
 
-Model.service("getMsg", function(scope){
-    return {
-        msg: "test1"
-    };
+Model.task("mainFlow", ['dothing2', 'dothing1'], function(scope){
+    alert("OK");
 });
 
-Model.service("runCode", ["getMsg", "alert1"]);
-
-var scope = Model.runWorkflow("runCode");
-console.log(scope);
-
-var f = function(){
-    var a = 'red';
-
-    var p = dosomething(a);
-
-    dosmoething2(p);
-};
+//Model.runWorkflow(["index.mainFlow"]);
+Model.runWorkflow("index.mainFlow");
 
 
-Model.task("varInit", function(scope){
-    var a = 3;
+Model.task("bindEvent", function(scope){
+    var p = $(".p");
 
-    return {
-        a: 3
-    };
-});
-
-Model.task("dosomething", function(scope){
-    var a = scope.a;
-
-    return {
-        p: red
-    };
-});
-
-Model.task("dosomething2", function(scope){
-    var p = scope.p;
-
-    return {
-        hello: 'ok'
-    };
-});
-
-Model.task("init", ['varInit', 'dosomething', 'dosomething2']);
-
-Model.runWorkflow('init');
-
-
-//Model.nameSpace("Flash", function(){
-    Model.task("setULHeight", function(scope){
-        var height = $(".sliderItem img").height();
-
-        $("#sliderWrapper").height(height);
+    p.on("click", function(){
+        Model.startWorkflow("add");
     });
-
-    Model.task("bindEvent", function(scope){
-    });
-
-    Model.task("intervalTask", function(scope){
-    });
-
-    Model.task("play", [function(scope){
-    }, task($setInterval, intervalTask)]);
-
-    Model.task("init", ['setULHeight', 'bindEvent', 'play']);
-
-    Model.runWorkflow("init");
-//});
-
+});
 
 /*
-Model.nameSpace("Flash", {
-    setULHeight: function(scope){
-    },
+Model.nameSpace("index2");
+    Model.task("dothing2", function(scope){
 
-    bindEvent: function(scope){
-    },
+    });
 
-    init: ['setULHeight', 'bindEvent', 'play']
-});
 
-Model.runWorkflow("Flash.init");
+
+Model.runWorkflow("index.mainFlow");
+
 */
