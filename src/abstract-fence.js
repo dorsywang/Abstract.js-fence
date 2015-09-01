@@ -16,6 +16,9 @@ Model.extend({
     tasks: {
     },
 
+    serviceMap: {
+    },
+
     importList: [],
 
     // 引入的列表
@@ -31,11 +34,18 @@ Model.extend({
         }
     },
 
+    // 服务
+    service: function(name, func){
+        name = name.trim();
+
+        this.serviceMap[name] = func;
+    },
+
     // 进行任务配置
-    task: function(name, serviceModules, func){
-        if(typeof serviceModules === "function"){
-            func = serviceModules;
-            serviceModules = [];
+    task: function(name, taskModules, func){
+        if(typeof taskModules === "function"){
+            func = taskModules;
+            taskModules = [];
         }
 
 
@@ -44,29 +54,70 @@ Model.extend({
             tasks = this.tasks[this.currNameSpace];
 
 
-            // 判读serviceModules是否有前缀，无前缀加前缀
-            for(var i = 0; i < serviceModules.length; i ++){
-                var item = serviceModules[i];
+            // 判读taskModules是否有前缀，无前缀加前缀
+            for(var i = 0; i < taskModules.length; i ++){
+                var item = taskModules[i];
 
                 if(item.indexOf(".") > -1){
                 }else{
                     item = this.currNameSpace + "." + item;
                 }
 
-                serviceModules[i] = item;
+                taskModules[i] = item;
             }
         }else{
             tasks = this.tasks;
         }
 
         tasks[name] = {
-            serviceModules: serviceModules,
+            taskModules: taskModules,
             func: func
         };
     },
 
+    _runFunc: function(func, scope){
+       // 进行预处理
+        var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
+        var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+        var fnText = func.toString().replace(STRIP_COMMENTS, '');
+        var argDecl = fnText.match(FN_ARGS);
+
+        // 依赖的模块
+        var deps = (argDecl[1] && argDecl[1].split(",")) || [];
+
+        var args = [];
+        var _this = this;
+
+        // 取到service的实体
+        var getServiceObj = function(serviceName){
+            serviceName = serviceName.trim();
+
+            var serviceFunc = _this.serviceMap[serviceName];
+
+            if(serviceName === "scope"){
+                return scope;
+            }
+
+            if(typeof serviceFunc === "undefined"){
+                console.error("Model: " + serviceName + " is not defined");
+
+                return function(){};
+            }
+
+            return _this._runFunc(serviceFunc);
+        };
+
+        for(var i = 0; i < deps.length; i ++){
+            args.push(getServiceObj(deps[i]));
+        }
+
+        var scope = {};
+
+        return func.apply(scope, args);
+    },
+
     runWorkflow: function(nameOrServiceFlow, initScope){
-        var serviceModules;
+        var taskModules;
         var initFunc;
         if(typeof nameOrServiceFlow === "string"){
             var name = nameOrServiceFlow;
@@ -98,27 +149,34 @@ Model.extend({
 
 
             if(funcOpt){
-                serviceModules = funcOpt.serviceModules;
+                taskModules = funcOpt.taskModules;
                 initFunc= funcOpt.func;
             }
         }else if(nameOrServiceFlow.hasOwnProperty("length")){
-            serviceModules = nameOrServiceFlow;
+            taskModules = nameOrServiceFlow;
             initFunc = function(scope){return scope;};
         }
 
-        var scope = initScope;
+        var scope = initScope || {};
 
         var addScope = function(scope){
             
         };
 
-        for(var i = 0; i < serviceModules.length; i ++){
-            var serviceName = serviceModules[i];
-            scope = this.runWorkflow(serviceName, scope);
+        for(var i = 0; i < taskModules.length; i ++){
+            var taskName = taskModules[i];
+            var returnScope = this.runWorkflow(taskName, scope);
+
+            for(var j in returnScope){
+                if(returnScope.hasOwnProperty(j)){
+                    scope[j] = returnScope[j];
+                }
+            }
         }
 
         if(initFunc){
-            return initFunc(scope);
+            // 接力scope
+            return this._runFunc(initFunc, scope);
         }else{
             return scope;
         }

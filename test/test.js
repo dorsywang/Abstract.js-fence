@@ -1,5 +1,21 @@
 Model.import("index.find", "index.tab");
 
+Model.service("scope", function(){
+    return {
+    };
+});
+
+Model.service("di2", function(){
+    return function(p){
+    };
+});
+
+Model.service("di1", function(di2, di3, di4){
+    return function(){
+    };
+});
+
+
 //声明命名空间
 Model.nameSpace("index");
 
@@ -21,8 +37,35 @@ Model.task("mainFlow", ['dothing2', 'dothing1'], function(scope){
     alert("OK");
 });
 
-//Model.runWorkflow(["index.mainFlow"]);
-Model.runWorkflow("index.mainFlow");
+Model.runWorkflow(["index.mainFlow"]);
+//Model.runWorkflow("index.mainFlow");
+//
+
+Model.service("processBig", function(){
+    return function(input){
+        return input * 2; 
+    };
+});
+
+Model.service("getFlag", function(processBig){
+    return function(input){
+        return processBig(++ input); 
+    };
+});
+
+
+Model.service("scope", function(){
+    return {
+    };
+});
+
+Model.task("main", function(getFlag, scope){
+    var p = getFlag(1);
+
+    alert(p);
+});
+
+//Model.runWorkflow("main", {left: 1});
 
 
 Model.task("bindEvent", function(scope){
