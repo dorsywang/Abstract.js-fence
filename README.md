@@ -76,7 +76,8 @@ Model.task("defineModels", ['initParams'], function(scope){
 });
 ```
 
-#####任务中通过scope获取参数，任务return一个对象出去，将会挂到scope上去，为后面的任务调用
+#####统一的入口和出口
+任务中通过scope获取参数，任务return一个对象出去，将会挂到scope上去，为后面的任务调用
 ```javascript
 // 声明initParams任务
 Model.task("initParams", function(scope){
@@ -101,3 +102,23 @@ Model.task("defineModels", ['initParams'], function(scope){
 #####服务通过依赖注入 注入任务内调用
 #####服务间可以通过过依赖注入使用其他服务
 #####服务不可以使用任务
+
+```javascript
+// 声明service function中参数可定义依赖
+Model.service("toNumber", function(){
+    return function(str){
+        return parseInt(str);
+    };
+});
+
+// defineModels任务依赖initParams完成后进行
+Model.task("initParams", function(scope, toNumber){
+        var str = '12a';
+
+        var num = toNumber(str);
+
+        return {
+            num: num
+        };
+});
+```
