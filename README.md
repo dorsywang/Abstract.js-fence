@@ -99,11 +99,22 @@ Model.task("defineModels", ['initParams'], function(scope){
 ###服务(service)
 服务是提供可代码复用的一种处理数据的手段
 
-#####服务通过依赖注入 注入任务内调用
+#####服务通过"依赖注入" 注入到 任务内
 #####服务间可以通过过依赖注入使用其他服务
 #####服务不可以使用任务
 
 ```javascript
+// editor为service
+// editor依赖toNumber服务
+Model.service("editor", function(toNumber){
+        return {
+            status: '1',
+            getEditorStatus: function(){
+                toNumber(this.status);
+            }
+        };
+});
+
 // 声明service function中参数可定义依赖
 Model.service("toNumber", function(){
     return function(str){
@@ -112,10 +123,12 @@ Model.service("toNumber", function(){
 });
 
 // defineModels任务依赖initParams完成后进行
-Model.task("initParams", function(scope, toNumber){
+Model.task("initParams", function(scope, toNumber, editor){
         var str = '12a';
 
         var num = toNumber(str);
+
+        var editorStauts = editor.getEditorStatus();
 
         return {
             num: num
