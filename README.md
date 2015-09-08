@@ -23,6 +23,11 @@ Abstract-fence是为了规范Abstract的代码而生的，为了使Abstract整�
 ##Abstract-fence来源
 Abstract-fence借鉴优秀的前端工程化构建框架Grunt、Gulp的工作流思想与优秀的MVVM框架AngularJS的Service与依赖注入优化功能
 
+##Abstract-fence优势
+#####轻量 代码只有200行
+#####清晰 逻辑清晰可读
+#####可测试  任务分散 统一入口和出口，很好做自动化测试
+
 ##Abstract-fence构成
 ### 无独立Function
 Function是为了解决代码复用而产生的，Function代表过程，但在Abstract-fence中Function可以规范为两种，一种是任务，一种是服务
