@@ -135,3 +135,7 @@ Model.task("initParams", function(scope, toNumber, editor){
         };
 });
 ```
+
+##简单的示例
+如下是重构后的index.my.js的主要逻辑
+<img src="code1.png" />
