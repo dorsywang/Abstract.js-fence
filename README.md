@@ -138,4 +138,87 @@ Model.task("initParams", function(scope, toNumber, editor){
 
 ##简单的示例
 如下是重构后的index.my.js的主要逻辑
-<img src="code1.png" />
+```javascript
+(function() {
+    require('../../css/index_my.min.css');
+
+    var isFirstTab = false;
+
+    // service配置区
+    Model.service("getGradeT", function(){
+        return function(level) {
+            // more code here
+        }
+    });
+
+    Model.service("getFlagArr", function(){
+        return function(flag) {
+            // more code here
+        }
+    });
+
+    Model.service("clearActiveLi", function(){
+        return function(){
+
+            // more code here
+
+        }
+    });
+
+    Model.service("editorManager", function(){
+        return {
+            beginEdit: function() {
+            },
+
+            finishEdit: function(){
+            },
+
+            getEditing: function(){
+            },
+
+            checKEmpty: checKEmpty
+        };
+    });
+
+
+    Model.service("tribeTapHandler", function(){
+        return function(e) {
+            // more code here
+        }
+    });
+
+    Model.task("getInitParam", function(scope){
+
+        // more code here
+    });
+
+
+    Model.task('defineModels', function(scope, getGradeT, getFlagArr, clearActiveLi, tribeTapHandler, editorManager) {
+        // more code here
+
+    });
+
+    Model.task("$re",  function(scope){
+        // more code here
+
+    });
+
+    Model.task('exportTab', function(scope) {
+        // more code here
+
+    });
+
+    Model.task('bindMsgEvent', function(){
+        // more code here
+
+    });
+
+    Model.task('init', ['getInitParam', 'defineModels', 'exportTab', 'bindMsgEvent']);
+
+    Model.runWorkflow('init');
+
+})();
+```
+
+##构建
+Abstract-fence使用Grunt进行构建编译，会对依赖注入进行一些参数处理
