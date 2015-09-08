@@ -141,6 +141,9 @@ Model.task("initParams", function(scope, toNumber, editor){
 });
 ```
 
+###执行服务(runWorkflow)
+使用runWorkflow方法执行任务流
+
 ##简单的示例
 如下是重构后的index.my.js的主要逻辑
 ```javascript
