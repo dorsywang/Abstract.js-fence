@@ -29,11 +29,71 @@ Function是为了解决代码复用而产生的，Function代表过程，但在A
 ###任务（task)
 任务代表为达到一个目的而进行的过程，为了清晰任务间的调用方式，任务可以依赖其他任务的完成。任务内部要求无独立Function跳转出现（除了全局方法）。
 
+#####任务使用task进行声明
+```javascript
+// 声明initParams任务
+Model.task("initParams", function(scope){
+});
+```
 #####任务写明依赖的其他任务关系
+通过第二个参数（Array）可以声明任务间的依赖, array元素会依次进行
+```javascript
+// 声明initParams任务
+Model.task("initParams", function(scope){
+});
+
+// defineModels任务依赖initParams完成后进行
+Model.task("defineModels", ['initParams'], function(scope){
+});
+```
 #####任务通过依赖注入使用服务
+```javascript
+// 声明initParams任务
+// initParmas使用getURLParams和getWork服务
+Model.task("initParams", function(scope, getURLParams, getWork){
+});
+```
+
 #####任务写明依赖的服务关系
 #####任务内部不能出现 未写明依赖关系的 function出现跳转（除了全局方法外）
+```javascript
+// 声明initParams任务
+// initParmas使用getURLParams和getWork服务
+Model.task("initParams", function(scope, getURLParams, getWork){
+       testParams('p');// 不允许的，testParams未通过注入使用，不能使用, 产生未声明的依赖，导致逻辑会不清晰
+});
+```
+
 #####每个任务中都有scope服务，scope从workflow开始进行传递给任务和调用的服务
+```javascript
+// 声明initParams任务
+Model.task("initParams", function(scope){
+});
+
+// defineModels任务依赖initParams完成后进行
+Model.task("defineModels", ['initParams'], function(scope){
+      // scope和initParams享有相同的对象，scope在任务间传递
+});
+```
+
+#####任务中通过scope获取参数，任务return一个对象出去，将会挂到scope上去，为后面的任务调用
+```javascript
+// 声明initParams任务
+Model.task("initParams", function(scope){
+        return {
+            msg: 'initOK'
+        }
+});
+
+// defineModels任务依赖initParams完成后进行
+Model.task("defineModels", ['initParams'], function(scope){
+      var msg = scope.msg;
+
+      // 打印出 initOK
+      console.log(msg);
+});
+```
+
 
 ###服务(service)
 服务是提供可代码复用的一种处理数据的手段
