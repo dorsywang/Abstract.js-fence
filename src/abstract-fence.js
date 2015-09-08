@@ -48,6 +48,11 @@ Model.extend({
             taskModules = [];
         }
 
+        // check taskModules是否为虚的function
+        if(taskModules.length && typeof taskModules[taskModules.length - 1] === "function"){
+            func = taskModules;
+            taskModules = [];
+        }
 
         var tasks;
         if(this.currNameSpace){
@@ -76,14 +81,27 @@ Model.extend({
     },
 
     _runFunc: function(func, scope){
-       // 进行预处理
-        var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
-        var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
-        var fnText = func.toString().replace(STRIP_COMMENTS, '');
-        var argDecl = fnText.match(FN_ARGS);
+        var deps;
 
-        // 依赖的模块
-        var deps = (argDecl[1] && argDecl[1].split(",")) || [];
+        // 是一个数组
+        if(func.hasOwnProperty("length") && func[0]){
+            var len = func.length;
+            var _func = func.splice(len - 1, 1)
+            deps = func;
+
+            func = _func[0];
+
+        }else{
+           // 进行预处理
+            var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
+            var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+            var fnText = func.toString().replace(STRIP_COMMENTS, '');
+            var argDecl = fnText.match(FN_ARGS);
+
+            // 依赖的模块
+            deps = (argDecl[1] && argDecl[1].split(",")) || [];
+
+        }
 
         var args = [];
         var _this = this;
@@ -153,6 +171,7 @@ Model.extend({
                 initFunc= funcOpt.func;
             }
         }else if(nameOrServiceFlow.hasOwnProperty("length")){
+
             taskModules = nameOrServiceFlow;
             initFunc = function(scope){return scope;};
         }
@@ -182,3 +201,6 @@ Model.extend({
         }
     }
 });
+if(typeof require !== "undefined"){
+    module.exports = Model;
+}
