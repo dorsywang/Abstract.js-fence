@@ -271,3 +271,18 @@ describe('Abstract-fence单元测试',function(){
     });
 });
 ```
+
+##ES6的入口写法
+入口为获得参数，在es6中，入口可以轻易的写成更易懂的方式
+```javascript
+Model.task("initParams", function(scope, toNumber){
+        // es6 取到入口参数
+        var {msg, bid, pid} = scope;
+
+        return {
+            intMsg: msg
+        };
+});
+```
+##Further More
+后续Abstract-fence将会支持按Promise模式写法的依赖方式，很好的支持异步的Task
