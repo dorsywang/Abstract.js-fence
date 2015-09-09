@@ -229,4 +229,45 @@ Model.task("initParams", function(scope, toNumber, editor){
 ```
 
 ##构建
+为了防止代码压缩依赖注入失效的问题，Abstract-fence会先进行grunt编译处理
+
 Abstract-fence使用Grunt进行构建编译，会对依赖注入进行一些参数处理
+
+如
+```javascript
+Model.task("initParams", function(scope, toNumber){
+});
+```
+会构建成
+```
+Model.task("initParams", ['scope', 'toNumber', function(scope, toNumber){
+}]);
+```
+
+##自动化测试
+由于task任务是分散的，且入口与出口统一，可方便进行自动化测试
+
+Jasmine的一种未经验证的测试方法如下
+
+```javascript
+Model.task("initParams", function(scope, toNumber){
+        var msg = scope.msg;
+
+        msg = toNumber(msg);
+
+        return {
+            intMsg: msg
+        };
+});
+```
+
+测试代码
+
+```javascript
+describe('Abstract-fence单元测试',function(){
+    it('测试initParams任务',function(){ 
+         expect(Model.runWorkflow("initParams", {msg: '1a'}).toEqual({msg: 1}); 
+         expect(Model.runWorkflow("initParams", {msg: '2'}).toEqual({msg: 2}); 
+    });
+});
+```
