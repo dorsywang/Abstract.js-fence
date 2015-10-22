@@ -76,6 +76,24 @@ Model.task("bindEvent", function(scope){
     });
 });
 
+
+Model.task('do1', function($q){
+    setTimeout(function(){
+        $q.next();
+    }, 1000);
+});
+
+Model.task('do2', function($q){
+    setTimeout(function(){
+        $q.next();
+    }, 2000);
+});
+
+Model.task('do3', function(){
+});
+
+Model.task('testThen', ['do1', 'do2'].then(['do3']));
+
 /*
 Model.nameSpace("index2");
     Model.task("dothing2", function(scope){

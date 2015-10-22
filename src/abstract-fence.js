@@ -3,6 +3,9 @@ if(typeof Model !== "undefined"){
     Model = {};
 }
 
+Array.prototype.then = function(taskArr){
+};
+
 Model.extend = function(opt){
     for(var i in opt){
         if(opt.hasOwnProperty(i)){
@@ -38,7 +41,10 @@ Model.extend({
     service: function(name, func){
         name = name.trim();
 
-        this.serviceMap[name] = func;
+        this.serviceMap[name] = {
+             func: func,
+             serviceResult: null
+        };
     },
 
     // 进行任务配置
@@ -109,12 +115,13 @@ Model.extend({
         // 取到service的实体
         var getServiceObj = function(serviceName){
             serviceName = serviceName.trim();
-
-            var serviceFunc = _this.serviceMap[serviceName];
-
             if(serviceName === "scope"){
                 return scope;
             }
+
+
+            var service = _this.serviceMap[serviceName];
+            var serviceFunc = service.func;
 
             if(typeof serviceFunc === "undefined"){
                 console.error("Model: " + serviceName + " is not defined");
@@ -122,7 +129,13 @@ Model.extend({
                 return function(){};
             }
 
-            return _this._runFunc(serviceFunc);
+            if(service.serviceResult){
+            }else{
+                var serviceResult = _this._runFunc(serviceFunc);
+                service.serviceResult = serviceResult;
+            }
+
+            return service.serviceResult;
         };
 
         for(var i = 0; i < deps.length; i ++){
