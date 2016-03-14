@@ -186,7 +186,7 @@ Model.extend({
         }else if(nameOrServiceFlow.hasOwnProperty("length")){
 
             taskModules = nameOrServiceFlow;
-            initFunc = function(scope){return scope;};
+            initFunc = ['scope', function(scope){return scope;}];
         }
 
         var scope = initScope || {};
