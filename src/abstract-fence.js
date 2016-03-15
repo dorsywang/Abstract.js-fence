@@ -4,6 +4,7 @@ if(typeof Model !== "undefined"){
 }
 
 Array.prototype.then = function(taskArr){
+    this.concat(taskArr);
 };
 
 Model.extend = function(opt){
@@ -103,6 +104,8 @@ Model.extend({
             var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
             var fnText = func.toString().replace(STRIP_COMMENTS, '');
             var argDecl = fnText.match(FN_ARGS);
+
+            console.log(argDecl[1], 'sdfsdfsdf');
 
             // 依赖的模块
             deps = (argDecl[1] && argDecl[1].split(",")) || [];
