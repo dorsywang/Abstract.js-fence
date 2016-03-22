@@ -138,7 +138,7 @@ Model.task('go', function(scope){
     alert(scope.taking);
 })
 
-Model.task('goOut', ['checkWheather', function(scope){
+Model.task('goOut', ['checkWeather', function(scope){
     var weather = scope.weather;
     
     if(weather === 'rainny'){
