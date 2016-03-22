@@ -10,12 +10,20 @@ Model.extend = function(opt){
     }
 };
 
-Array.prototype.then1 = function(taskArr){
-    if(this.length){
-        return this.concat('then').concat(taskArr);
-    }else{
-        return [taskArr];
+Array.prototype.then = function(taskArr){
+    if(typeof taskArr === "function"){
+        console.log('then call --------------');
+        taskArr();
+
+        return;
     }
+
+    var val = this.concat('then').concat(taskArr);
+    if(! this.length){
+        val = val.slice(1);
+    }
+
+    return val;
 };
 
 
@@ -23,6 +31,10 @@ Model.extend({
     // 给func加一层语法糖
     tasks: {
     },
+
+    fence: 1,
+
+    version: '2.0',
 
     serviceMap: {
     },
@@ -40,12 +52,17 @@ Model.extend({
         var deps;
 
         // 是一个数组
-        if(func.hasOwnProperty("length") && func[0]){
+        if(func.deps){
+            deps = func.deps;
+/*
+        }
+        else if(func.hasOwnProperty("length") && func[0]){
             var len = func.length;
             var _func = func.splice(len - 1, 1)
             deps = func;
 
             func = _func[0];
+            */
 
         }else{
            // 进行预处理
@@ -56,10 +73,10 @@ Model.extend({
 
             var GLOBAL_REG = /\{([^\}]*)\}/g;
 
-            console.log(argDecl[1]);
-
             var r;
-            r = GLOBAL_REG.exec(argDecl[1]);
+            if(argDecl && argDecl[1]){
+                r = GLOBAL_REG.exec(argDecl[1]);
+            }
 
             var globalVals;
             if(r && r[1]){
@@ -94,36 +111,36 @@ Model.extend({
 
 
             var service = _this.serviceMap[serviceName];
-            var serviceFunc = service.func;
+            var serviceFunc = service && service.func;
 
             if(typeof serviceFunc === "undefined"){
-                console.error("Model: " + serviceName + " is not defined");
+                console.error("Model: service " + serviceName + " is not defined");
+                throw new error("Model: " + serviceName + " is not defined");
 
                 return function(){};
             }
 
             if(service.serviceResult){
             }else{
-                var serviceResult = _this._runFunc(serviceFunc);
+                var serviceResult = _this._runFunc(serviceFunc, scope);
                 service.serviceResult = serviceResult;
             }
 
             return service.serviceResult;
         };
 
-        console.log(deps, 'deps');
         for(var i = 0; i < deps.length; i ++){
             args.push(getServiceObj(deps[i]));
         }
 
-        var scope = {};
+        // var scope = {};
 
         if(hasNext){
             return func.apply(scope, args);
         }else{
             var val = func.apply(scope, args);
 
-            next(val);
+            next && next(val);
 
             return val;
         }
@@ -137,15 +154,30 @@ Model.extend({
             taskModules = [];
         }
 
+        // 这里是防压缩形式
+        /*
         if(taskModules.length && typeof taskModules[taskModules.length - 1] === "function"){
             func = taskModules;
             taskModules = [];
         }
+        */
 
         var _this = this;
 
+
+        // 对func为数组的处理，统一处理为函数
+        if(func && func.length && func.splice){
+            var f = func.splice(func.length - 1, 1)[0];
+
+            var args = func;
+
+            func = f;
+
+            func.deps = args;
+        }
+
         if(func){
-            taskModules = taskModules.then1(func);
+            taskModules = taskModules.then([func]);
         }
 
         this.tasks[name] = taskModules;
@@ -241,7 +273,6 @@ Model.extend({
         var _this = this;
 
         var arr2Promise = function(arr){
-            console.log(arr, 'arr2Promise');
 
             if(c ++ > 100){
                 return;
@@ -262,7 +293,6 @@ Model.extend({
                 });
 
                 t.then(function(){
-                    console.log('sdfsdf', t);
                 });
 
                 return t;
@@ -273,7 +303,6 @@ Model.extend({
                 queue.map(function(item){
                     if(p){
                         p.then(function(){
-                            console.log('------------------');
                              return arr2Promise(item);
                         });
                     }else{
@@ -310,19 +339,56 @@ Model.extend({
                         if(typeof item === 'string'){
                             var taskDefination = _this.tasks[item];
 
+                            if(! taskDefination){
+                                console.error('Model:', item, ' not defined');
+
+                                throw new Error('Model:' + item + ' not defined');
+                            }
+
                             return arr2Promise(taskDefination);
-                        }else if(item.length){
+
+                        // 如果某个元素为function, 则为动态计算的task
+                        }else if(item.length && item.splice === "function"){
                             return arr2Promise(item);
+                        }else if(typeof item === "function"){
+                            var returnVal = _this._runFunc(item, scope, function(){
+                            });
+
+                            if(returnVal && typeof returnVal === "string"){
+                                var taskDefination = _this.tasks[returnVal];
+
+                                return arr2Promise(taskDefination);
+                            // 否则就不加到task里去了
+                            }else if(returnVal && returnVal.length && returnVal.splice){
+                                return arr2Promise(returnVal);
+                            }else{
+                            }
+
+
+
+                            /*
+                            var t = new Promise(function(rs, rj){
+                                var returnVal = _this._runFunc(item, scope, function(){
+                                    rs();
+                                });
+
+                                for(var i in returnVal){
+                                    if(returnVal.hasOwnProperty(i)){
+                                        scope[i] = returnVal[i];
+                                    }
+                                }
+                            });
+
+                            return t;
+                            */
                         }else{
                             return item;
                         }
                     });
 
-                    console.log(promiseAllQueue, 'allQeueu');
                     var f = Promise.all(promiseAllQueue);
                     
                     f.then(function(){
-                        console.log('-------------');
                     });
 
                     return f;
@@ -370,3 +436,5 @@ Model.extend({
         // return Promise.all(tasksArr);
     }
 });
+
+

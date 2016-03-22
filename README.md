@@ -24,13 +24,14 @@ Abstract-fence是为了规范Abstract的代码而生的，为了使Abstract整�
 Abstract-fence借鉴优秀的前端工程化构建框架Grunt、Gulp的工作流思想与优秀的MVVM框架AngularJS的Service与依赖注入优化功能
 
 ##Abstract-fence优势
-#####轻量 代码只有200行
+#####轻量 
 #####清晰 逻辑清晰可读
 #####可测试  任务分散 统一入口和出口，很好做自动化测试
 
 ##Abstract-fence构成
 ### 无独立Function
 Function是为了解决代码复用而产生的，Function代表过程，但在Abstract-fence中Function可以规范为两种，一种是任务，一种是服务
+
 ###任务（task)
 任务代表为达到一个目的而进行的过程，为了清晰任务间的调用方式，任务可以依赖其他任务的完成。任务内部要求无独立Function跳转出现（除了全局方法）。
 
@@ -79,6 +80,75 @@ Model.task("initParams", function(scope){
 Model.task("defineModels", ['initParams'], function(scope){
       // scope和initParams享有相同的对象，scope在任务间传递
 });
+```
+
+#####task异步流程
+异步是js中处理问题的关键，Abstract-fence引入了异步机制
+
+使用异步能力，只需要引入next服务即可
+
+```javascript
+Model.task('sleep', function(scope, next){
+    var sleepTime = scope.sleepTime;
+    
+    setTimeout(function(){
+        next();
+    }, sleepTime)
+});
+
+Model.task('say', function(scope){
+    var words = scope.words;
+    
+    alert(words);
+})
+
+Model.task('sleep3say', ['sleep'].then('say'));
+
+Model.runWorkflow('sleep3say', {
+    words: 'wake',
+    sleepTime: 3000
+});
+```
+
+#####流程控制
+很多时候，有一些流程，我们需要根据不同的流数据进行不同的流处理
+
+比如，下雨天，就带伞，烈日天，就戴帽子
+
+```javascript
+Model.task('checkWeather', function(scope){
+    return {
+        weather: 'rainny'
+    };
+});
+
+Model.task('takeUm', function(){
+    return {
+         taking: 'um'
+    };
+});
+
+Model.task('takeHat', function(){
+    return {
+         taking: 'hat'
+    };
+});
+
+Model.task('go', function(scope){
+    alert(scope.taking);
+})
+
+Model.task('goOut', ['checkWheather', function(scope){
+    var weather = scope.weather;
+    
+    if(weather === 'rainny'){
+         return 'takeUm';
+    }else if(weather === 'sunny'){
+        return 'takeHat';
+    }
+}].then('go'));
+
+Model.runWorkflow('goOut');
 ```
 
 #####统一的入口和出口
@@ -229,8 +299,10 @@ Model.task("initParams", function(scope, toNumber, editor){
 ```
 
 ##构建
-为了防止代码压缩依赖注入失效的问题，Abstract-fence会先进行grunt编译处理
+为了防止代码压缩依赖注入失效的问题，Abstract-fence会先进行grunt编译处理（新版构建开发中）
 
+
+/*
 Abstract-fence使用Grunt进行构建编译，会对依赖注入进行一些参数处理
 
 如
@@ -243,6 +315,8 @@ Model.task("initParams", function(scope, toNumber){
 Model.task("initParams", ['scope', 'toNumber', function(scope, toNumber){
 }]);
 ```
+*/
+
 
 ##自动化测试
 由于task任务是分散的，且入口与出口统一，可方便进行自动化测试
@@ -286,3 +360,4 @@ Model.task("initParams", function(scope, toNumber){
 ```
 ##Further More
 后续Abstract-fence将会支持按Promise模式写法的依赖方式，很好的支持异步的Task
+
