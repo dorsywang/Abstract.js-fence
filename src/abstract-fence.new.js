@@ -12,7 +12,6 @@ Model.extend = function(opt){
 
 Array.prototype.then = function(taskArr){
     if(typeof taskArr === "function"){
-        console.log('then call --------------');
         taskArr();
 
         return;
@@ -65,27 +64,56 @@ Model.extend({
             */
 
         }else{
-           // 进行预处理
-            var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
+            // 先检查是不是箭头函数
+            var isFunc = true;
+            try{
+                new func
+            }catch(e){
+                isFunc = false;
+            }
+
             var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
             var fnText = func.toString().replace(STRIP_COMMENTS, '');
-            var argDecl = fnText.match(FN_ARGS);
+
+
+            if(isFunc){
+               // 进行预处理
+                var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
+                var argDecl = fnText.match(FN_ARGS);
+
+                if(argDecl){
+                    argDecl = argDecl[1];
+                }else{
+                    argDecl = "";
+                }
+            }else{
+                var part = fnText.split('=>');
+
+                if(part && part[0]){
+                    var argsDe = part[0];
+
+                    var argDecl = argsDe.replace(/^\s*\(|\)\s*$/g, '').trim();
+                }else{
+                    var argDecl = "";
+                }
+
+            }
 
             var GLOBAL_REG = /\{([^\}]*)\}/g;
 
             var r;
-            if(argDecl && argDecl[1]){
-                r = GLOBAL_REG.exec(argDecl[1]);
+            if(argDecl){
+                r = GLOBAL_REG.exec(argDecl);
             }
 
             var globalVals;
             if(r && r[1]){
-                argDecl[1] = argDecl[1].replace(r[0], 'global');
+                argDecl = argDecl.replace(r[0], 'global');
                 globalVals = r[1];
             }
 
             // 依赖的模块
-            deps = (argDecl[1] && argDecl[1].split(",")) || [];
+            deps = (argDecl && argDecl.split(",")) || [];
         }
 
         var args = [];
@@ -115,7 +143,7 @@ Model.extend({
 
             if(typeof serviceFunc === "undefined"){
                 console.error("Model: service " + serviceName + " is not defined");
-                throw new error("Model: " + serviceName + " is not defined");
+                throw new Error("Model: " + serviceName + " is not defined");
 
                 return function(){};
             }

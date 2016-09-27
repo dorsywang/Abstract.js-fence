@@ -99,16 +99,39 @@ Model.extend({
             func = _func[0];
 
         }else{
-           // 进行预处理
-            var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
+            // 先检查是不是箭头函数
+            var isFunc = true;
+            try{
+                new func
+            }catch(e){
+                isFunc = false;
+            }
+
             var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
             var fnText = func.toString().replace(STRIP_COMMENTS, '');
-            var argDecl = fnText.match(FN_ARGS);
 
-            console.log(argDecl[1], 'sdfsdfsdf');
+            if(isFunc){
+               // 进行预处理
+                var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
 
-            // 依赖的模块
-            deps = (argDecl[1] && argDecl[1].split(",")) || [];
+                var argDecl = fnText.match(FN_ARGS);
+
+                console.log(argDecl[1], 'sdfsdfsdf');
+
+                // 依赖的模块
+                deps = (argDecl[1] && argDecl[1].split(",")) || [];
+            }else{
+                var part = fnText.split('=>');
+
+                if(part && part[0]){
+                    var argsDe = part[0];
+
+                    deps = argsDe.replace(/^\(|\)$/g, '').trim().split(',') || [];
+                }else{
+                    deps = [];
+                }
+                
+            }
 
         }
 
