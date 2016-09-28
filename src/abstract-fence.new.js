@@ -64,21 +64,17 @@ Model.extend({
             */
 
         }else{
-            // 先检查是不是箭头函数
-            var isFunc = true;
-            try{
-                new func
-            }catch(e){
-                isFunc = false;
-            }
 
             var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
             var fnText = func.toString().replace(STRIP_COMMENTS, '');
 
+            // 先检查是不是箭头函数
+            var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
+            var isFunc = FN_ARGS.test(fnText);
+
 
             if(isFunc){
                // 进行预处理
-                var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
                 var argDecl = fnText.match(FN_ARGS);
 
                 if(argDecl){
@@ -309,7 +305,14 @@ Model.extend({
             // 出口点
             if(arr.length === 1 && typeof arr[0] === 'function'){
                 var t = new Promise(function(rs, rj){
-                    var returnVal = _this._runFunc(arr[0], scope, function(){
+                    var returnVal = _this._runFunc(arr[0], scope, function(data){
+                        data = data || {};
+                       
+                        for(var i in data){
+                            if(data.hasOwnProperty(i)){
+                                scope[i] = data[i];
+                            }
+                        } 
                         rs();
                     });
 
