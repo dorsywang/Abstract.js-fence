@@ -333,7 +333,7 @@ Model.extend({
                 var p;
                 queue.map(function(item){
                     if(p){
-                        p.then(function(){
+                        p = p.then(function(){
                              return arr2Promise(item);
                         });
                     }else{
